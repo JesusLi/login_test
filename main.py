@@ -54,17 +54,13 @@ def _collect_config() -> LoginConfig:
             print("[ERROR] 用户名和密码不能为空")
             sys.exit(1)
 
-    headless = True
-    if login_method == "qrcode":
-        headless = False  # 二维码方式必须显示浏览器窗口
-
     return LoginConfig(
         base_url=base_url,
         login_method=login_method,
         homepage_url=homepage_url,
         username=username,
         password=password,
-        headless=headless,
+        headless=True,  # 始终无头模式，CLI 环境无需显示浏览器窗口
     )
 
 

@@ -45,8 +45,8 @@ class LoginManager:
             raise ValueError(f"不支持的登录方式: {config.login_method}")
 
         strategy = strategy_cls()
-        # 二维码方式强制非无头模式
-        headless = config.headless if config.login_method != "qrcode" else False
+        # 二维码内容通过截图/接口拦截提取后渲染到终端，无需显示浏览器窗口
+        headless = config.headless
 
         async with BrowserSession(headless=headless) as session:
             context = await session.new_context(storage_state_path=None)
