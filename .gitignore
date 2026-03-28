@@ -8,4 +8,5 @@ dist/
 build/
 .pytest_cache/
 storage/states/*.json
+storage/pages/*.html
 !登录测试功能技术设计方案*.md

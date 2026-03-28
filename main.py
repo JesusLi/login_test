@@ -12,7 +12,9 @@
 
 import asyncio
 import getpass
+import os
 import sys
+import time
 
 from login_tester.accessor.homepage_accessor import HomepageAccessor
 from login_tester.config import LoginConfig
@@ -75,11 +77,29 @@ async def _run(config: LoginConfig) -> None:
     accessor = HomepageAccessor(storage_state_path=state_path, config=config)
     result = await accessor.fetch()
 
+    # 保存 HTML 到 storage/pages/
+    html_path = _save_html(result, config)
+
     print("\n" + "=" * 40)
     print(f"主页标题 : {result['title']}")
     print(f"主页 URL  : {result['url']}")
     print(f"登录态文件: {state_path}")
+    print(f"主页 HTML : {html_path}")
     print("=" * 40)
+
+
+def _save_html(result: dict, config: LoginConfig) -> str:
+    """将主页 HTML 内容保存到 storage/pages/ 目录，返回文件路径。"""
+    from urllib.parse import urlparse
+    domain = urlparse(config.base_url).netloc.replace(":", "_")
+    timestamp = time.strftime("%Y%m%d_%H%M%S")
+    pages_dir = os.path.join(config.storage_dir.rsplit("/", 1)[0], "pages")
+    os.makedirs(pages_dir, exist_ok=True)
+    html_path = os.path.join(pages_dir, f"{domain}_{timestamp}.html")
+    with open(html_path, "w", encoding="utf-8") as f:
+        f.write(result["content"])
+    logger.info("主页 HTML 已保存至 %s", html_path)
+    return html_path
 
 
 def main() -> None:
