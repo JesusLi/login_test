@@ -44,7 +44,10 @@ class LoginManager:
         if strategy_cls is None:
             raise ValueError(f"不支持的登录方式: {config.login_method}")
 
-        strategy = strategy_cls()
+        kwargs = {}
+        if config.login_method == "qrcode":
+            kwargs["strategy"] = config.qr_strategy
+        strategy = strategy_cls(**kwargs)
         # 二维码内容通过截图/接口拦截提取后渲染到终端，无需显示浏览器窗口
         headless = config.headless
 

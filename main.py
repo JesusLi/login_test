@@ -44,9 +44,18 @@ def _collect_config() -> LoginConfig:
 
     print("\n请选择登录方式:")
     print("  [1] 账号密码")
-    print("  [2] 二维码")
-    method_input = _prompt("请输入选项 [1/2]: ", default="1")
-    login_method = "password" if method_input == "1" else "qrcode"
+    print("  [2] 二维码（自动识别，失败时降级到接口拦截）")
+    print("  [3] 二维码（直接使用接口拦截）")
+    method_input = _prompt("请输入选项 [1/2/3]: ", default="1")
+
+    login_method = "password"
+    qr_strategy = "screenshot"
+    if method_input == "2":
+        login_method = "qrcode"
+        qr_strategy = "screenshot"
+    elif method_input == "3":
+        login_method = "qrcode"
+        qr_strategy = "intercept"
 
     username = password = None
     if login_method == "password":
@@ -63,6 +72,7 @@ def _collect_config() -> LoginConfig:
         username=username,
         password=password,
         headless=True,  # 始终无头模式，CLI 环境无需显示浏览器窗口
+        qr_strategy=qr_strategy,
     )
 
 

@@ -28,11 +28,18 @@ _QR_IMG_SELECTORS = [
     "img.qrcode",
     "img[class*='qr']",
     "img[class*='QR']",
+    "img[class*='Qr']",        # 知乎: QrCode-image
     "img[class*='qrCode']",
+    "img[class*='QrCode']",
+    "img[class*='qr-code']",
     "canvas[class*='qr']",
+    "canvas[class*='Qr']",
     ".qrcode img",
     ".qr-code img",
+    ".QrCode img",
     "[data-testid*='qr'] img",
+    "[class*='qrcode'] img",
+    "[class*='QrCode'] img",
 ]
 
 # 切换到二维码 Tab 的常见文字
@@ -59,7 +66,12 @@ class QRCodeLoginStrategy(LoginStrategy):
             await self._switch_to_qr_tab(page)
 
             if self._strategy == "screenshot":
-                qr_url = await self._get_qr_url_by_screenshot(page)
+                try:
+                    qr_url = await self._get_qr_url_by_screenshot(page)
+                except ElementNotFoundError:
+                    logger.warning("截图策略未找到二维码，自动切换到接口拦截策略")
+                    await self._save_debug_screenshot(page)
+                    qr_url = await self._get_qr_url_by_intercept(page, config)
             else:
                 qr_url = await self._get_qr_url_by_intercept(page, config)
 
@@ -101,6 +113,16 @@ class QRCodeLoginStrategy(LoginStrategy):
                 logger.debug("已切换到二维码登录 Tab")
         except Exception:
             logger.debug("未发现二维码 Tab，直接使用当前页面")
+
+    async def _save_debug_screenshot(self, page: Page) -> None:
+        """保存全页截图到 storage/pages/debug_qr_<timestamp>.png，便于排查 selector 问题。"""
+        import os
+        import time
+        debug_dir = os.path.join("storage", "pages")
+        os.makedirs(debug_dir, exist_ok=True)
+        path = os.path.join(debug_dir, f"debug_qr_{time.strftime('%Y%m%d_%H%M%S')}.png")
+        await page.screenshot(path=path, full_page=True)
+        logger.info("调试截图已保存至 %s，可检查页面二维码元素", path)
 
     async def _get_qr_url_by_screenshot(self, page: Page) -> str:
         """截图裁剪策略：遍历常见 selector，找到可见的二维码图片并解码。"""

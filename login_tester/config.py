@@ -13,6 +13,7 @@ class LoginConfig:
     headless: bool = True                # 无头模式（二维码方式强制 False）
     timeout: int = 60000                 # ms，等待超时
     storage_dir: str = "storage/states" # 登录态保存目录
+    qr_strategy: str = "screenshot"     # 二维码获取策略："screenshot" | "intercept"
 
     def get_homepage_url(self) -> str:
         """返回主页 URL，未配置时自动降级为 base_url 的域名根路径"""
